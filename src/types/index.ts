@@ -40,3 +40,11 @@ export type TaskFormProps = {
   onCancelEdit?: () => void;
 };
 
+export interface TaskColumnProps {
+  id: TaskStatus;
+  title: string;
+  tasks: Task[];
+  onStatusChange: (id: string, status: TaskStatus) => void;
+  onDelete: (id: string) => void;
+  onEdit: (id: string) => void;
+}
