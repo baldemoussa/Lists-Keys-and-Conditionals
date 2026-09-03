@@ -16,20 +16,12 @@ function App() {
   const [filters, setFilters] = useState<{ status?: Task['status']; priority?: Task['priority']; text?: string; sort?: SortCriteria }>({});
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [isFormVisible, setIsFormVisible] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+  const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
+      return true;
     }
-    return 'light';
+    return false;
   });
-
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [theme]);
 
   const filteredTasks = filterTasks(tasks, filters);
   const editingTask = tasks.find(t => t.id === editingTaskId) || null;
@@ -69,15 +61,16 @@ function App() {
   const displayTasks = filters.sort ? sortTasks(filteredTasks, filters.sort) : filteredTasks;
 
   return (
-    <div className="container mx-auto p-4 mt-8 max-w-7xl">
+    <div className={isDarkMode ? 'dark min-h-screen bg-slate-900 text-slate-100 transition-colors duration-300' : 'min-h-screen bg-slate-50 text-slate-900 transition-colors duration-300'}>
+      <div className="container mx-auto p-4 mt-8 max-w-7xl">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold dark:text-white">Task Management</h1>
         <button
-          onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+          onClick={() => setIsDarkMode(previousMode => !previousMode)}
           className="p-2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
           aria-label="Toggle Dark Mode"
         >
-          {theme === 'light' ? (
+          {!isDarkMode ? (
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
             </svg>
@@ -117,6 +110,7 @@ function App() {
         onDelete={handleDelete}
         onEdit={handleEdit} />
 
+      </div>
     </div>
   )
 }
