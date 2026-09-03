@@ -24,7 +24,9 @@ function TaskItem({ task, onStatusChange, onDelete, onEdit }: TaskItemProps) {
             style={style}
             {...attributes}
             {...listeners}
-            className="flex flex-col justify-between gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm bg-white dark:bg-slate-800 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600 transition-all cursor-grab active:cursor-grabbing"
+            className="flex flex-col justify-between gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 
+                        shadow-sm bg-white dark:bg-slate-600 hover:shadow-md hover:border-slate-300 
+                        dark:hover:border-slate-600 transition-all cursor-grab active:cursor-grabbing"
         >
             <div className="flex justify-between items-start gap-2">
                 <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 break-words leading-tight">{task.title}</h3>

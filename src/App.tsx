@@ -106,7 +106,7 @@ function App() {
         )}
 
         <Dashboard tasks={tasks} isDarkMode={isDarkMode} />
-        <TaskFilter onFilterChange={setFilters} />
+        <TaskFilter onFilterChange={setFilters} isDarkMode={isDarkMode} />
 
         <TaskList tasks={displayTasks}
           onStatusChange={handleStatusChange}

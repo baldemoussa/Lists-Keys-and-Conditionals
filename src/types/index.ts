@@ -26,11 +26,13 @@ export interface TaskItemProps {
 }
 
 export interface TaskFilterProps {
+  isDarkMode: boolean;
   onFilterChange: (filters: {
     status?: TaskStatus;
     priority?: TaskPriority;
     text?: string;
     sort?: SortCriteria;
+    mode?: 'light' | 'dark';
   }) => void;
 }
 
