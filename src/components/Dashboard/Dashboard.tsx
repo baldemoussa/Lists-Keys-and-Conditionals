@@ -1,14 +1,25 @@
 import type { Task } from '../../types';
 import { getTaskStats } from '../../utils/taskUtils';
 
-function Dashboard({ tasks }: { tasks: Task[] }) {
+function Dashboard({
+    tasks,
+    isDarkMode,
+}: {
+    tasks: Task[];
+    isDarkMode: boolean;
+}) {
     const stats = getTaskStats(tasks);
 
     return (
         <div className="mb-8">
-            <h2 className="text-2xl font-bold text-slate-800 mb-6">Overview</h2>
+            <h2
+                className="text-2xl font-bold mb-6"
+                style={{ color: isDarkMode ? '#f8fafc' : '#0f172a' }}
+            >
+                Overview
+            </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                
+
                 {/* Total Tasks */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center transition-transform hover:-translate-y-1 duration-300">
                     <span className="text-slate-500 text-sm font-semibold uppercase tracking-wider mb-2">Total Tasks</span>
@@ -32,7 +43,7 @@ function Dashboard({ tasks }: { tasks: Task[] }) {
                     <span className="text-amber-700 text-sm font-semibold uppercase tracking-wider mb-2">Pending</span>
                     <span className="text-4xl font-black text-amber-800">{stats.pending}</span>
                 </div>
-                
+
             </div>
         </div>
     )
