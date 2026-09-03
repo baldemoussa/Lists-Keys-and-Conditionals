@@ -1,21 +1,23 @@
-import { useState } from 'react'
-import type { Task } from './types';
+import { useState, useEffect } from 'react'
+import type { Task, SortCriteria } from './types';
+import { sortTasks, filterTasks, loadTasksFromStorage, saveTasksToStorage } from './utils/taskUtils';
 import TaskList from './components/TaskList/TaskList';
 import TaskFilter from './components/TaskFilter/TaskFilter';
+import TaskForm from './components/TaskForm/TaskForm';
+import Dashboard from './components/Dashboard/Dashboard';
+
 function App() {
-  const [tasks, setTasks] = useState<Task[]>([
-    { id: "1", title: "Task 1", description: "Description 1", status: "pending", priority: "low", dueDate: "8/31/2026" },
-    { id: "2", title: "Task 2", description: "Description 2", status: "in-progress", priority: "medium", dueDate: "8/30/2026" },
-    { id: "3", title: "Task 3", description: "Description 3", status: "completed", priority: "high", dueDate: "8/29/2026" },
-  ]);
+  const [tasks, setTasks] = useState<Task[]>(loadTasksFromStorage);
 
-  const [filters, setFilters] = useState<{ status?: Task['status']; priority?: Task['priority'] }>({});
+  useEffect(() => {
+    saveTasksToStorage(tasks);
+  }, [tasks]);
 
-  const filteredTasks = tasks.filter(task => {
-    if (filters.status && task.status !== filters.status) return false;
-    if (filters.priority && task.priority !== filters.priority) return false;
-    return true;
-  });
+  const [filters, setFilters] = useState<{ status?: Task['status']; priority?: Task['priority']; text?: string; sort?: SortCriteria }>({});
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+
+  const filteredTasks = filterTasks(tasks, filters);
+  const editingTask = tasks.find(t => t.id === editingTaskId) || null;
 
   const handleStatusChange = (taskId: string, newStatus: Task['status']) => {
     setTasks(prevTasks =>
@@ -29,14 +31,38 @@ function App() {
     setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
   };
 
+  const handleSubmit = (task: Task) => {
+    if (editingTaskId) {
+      setTasks(prevTasks => prevTasks.map(t => t.id === task.id ? task : t));
+      setEditingTaskId(null);
+    } else {
+      setTasks(prevTasks => [...prevTasks, task]);
+    }
+  };
+
+  const handleEdit = (taskId: string) => {
+    setEditingTaskId(taskId);
+  };
+
+  const displayTasks = filters.sort ? sortTasks(filteredTasks, filters.sort) : filteredTasks;
+
   return (
     <div className="container mx-auto p-4 mt-8 max-w-3xl">
-      <h1 className="text-3xl font-bold text-center">Task Manager</h1>
+      <h1 className="text-3xl font-bold text-center">Task Management</h1>
+      <Dashboard tasks={tasks} />
+
+      <TaskForm
+        onSubmit={handleSubmit}
+        initialTask={editingTask}
+        onCancelEdit={() => setEditingTaskId(null)}
+      />
       <TaskFilter onFilterChange={setFilters} />
 
-      <TaskList tasks={filteredTasks}
+      <TaskList tasks={displayTasks}
         onStatusChange={handleStatusChange}
-        onDelete={handleDelete} />
+        onDelete={handleDelete}
+        onEdit={handleEdit} />
+
     </div>
   )
 }
