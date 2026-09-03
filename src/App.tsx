@@ -61,7 +61,10 @@ function App() {
   const displayTasks = filters.sort ? sortTasks(filteredTasks, filters.sort) : filteredTasks;
 
   return (
-    <div className={isDarkMode ? 'dark min-h-screen bg-slate-900 text-slate-100 transition-colors duration-300' : 'min-h-screen bg-slate-50 text-slate-900 transition-colors duration-300'}>
+    <div
+      className={`min-h-screen text-slate-900 transition-colors duration-300 ${isDarkMode ? 'dark text-slate-100' : ''}`}
+      style={{ backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc' }}
+    >
       <div className="container mx-auto p-4 mt-8 max-w-7xl">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold dark:text-white">Task Management</h1>
