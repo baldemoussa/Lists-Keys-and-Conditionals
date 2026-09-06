@@ -1,29 +1,52 @@
 export type TaskStatus = 'pending' | 'in-progress' | 'completed';
- 
+export type TaskPriority = 'low' | 'medium' | 'high';
+export type SortCriteria = 'Title' | 'Priority' | 'Due-Date' | 'Status';
+
 export interface Task {
   id: string;
   title: string;
   description: string;
   status: TaskStatus;
-  priority: 'low' | 'medium' | 'high';
+  priority: TaskPriority;
   dueDate: string;
 }
- 
+
 export interface TaskListProps {
   tasks: Task[];
   onStatusChange: (taskId: string, newStatus: TaskStatus) => void;
   onDelete: (taskId: string) => void;
+  onEdit: (taskId: string) => void;
 }
 
 export interface TaskItemProps {
   task: Task;
   onStatusChange: (taskId: string, newStatus: TaskStatus) => void;
   onDelete: (taskId: string) => void;
+  onEdit: (taskId: string) => void;
 }
 
 export interface TaskFilterProps {
+  isDarkMode: boolean;
   onFilterChange: (filters: {
     status?: TaskStatus;
-    priority?: 'low' | 'medium' | 'high';
+    priority?: TaskPriority;
+    text?: string;
+    sort?: SortCriteria;
+    mode?: 'light' | 'dark';
   }) => void;
+}
+
+export type TaskFormProps = {
+  onSubmit: (task: Task) => void;
+  initialTask?: Task | null;
+  onCancelEdit?: () => void;
+};
+
+export interface TaskColumnProps {
+  id: TaskStatus;
+  title: string;
+  tasks: Task[];
+  onStatusChange: (id: string, status: TaskStatus) => void;
+  onDelete: (id: string) => void;
+  onEdit: (id: string) => void;
 }

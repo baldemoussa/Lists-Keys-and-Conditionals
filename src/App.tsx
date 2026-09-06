@@ -1,21 +1,34 @@
-import { useState } from 'react'
-import type { Task } from './types';
+import { useState, useEffect } from 'react'
+import type { Task, SortCriteria } from './types';
+import { sortTasks, filterTasks, loadTasksFromStorage, saveTasksToStorage } from './utils/taskUtils';
 import TaskList from './components/TaskList/TaskList';
 import TaskFilter from './components/TaskFilter/TaskFilter';
+import TaskForm from './components/TaskForm/TaskForm';
+import Dashboard from './components/Dashboard/Dashboard';
+import Footer from './components/Footer';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+
+
 function App() {
-  const [tasks, setTasks] = useState<Task[]>([
-    { id: "1", title: "Task 1", description: "Description 1", status: "pending", priority: "low", dueDate: "8/31/2026" },
-    { id: "2", title: "Task 2", description: "Description 2", status: "in-progress", priority: "medium", dueDate: "8/30/2026" },
-    { id: "3", title: "Task 3", description: "Description 3", status: "completed", priority: "high", dueDate: "8/29/2026" },
-  ]);
+  const [tasks, setTasks] = useState<Task[]>(loadTasksFromStorage);
 
-  const [filters, setFilters] = useState<{ status?: Task['status']; priority?: Task['priority'] }>({});
+  useEffect(() => {
+    saveTasksToStorage(tasks);
+  }, [tasks]);
 
-  const filteredTasks = tasks.filter(task => {
-    if (filters.status && task.status !== filters.status) return false;
-    if (filters.priority && task.priority !== filters.priority) return false;
-    return true;
+  const [filters, setFilters] = useState<{ status?: Task['status']; priority?: Task['priority']; text?: string; sort?: SortCriteria }>({});
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [isFormVisible, setIsFormVisible] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return true;
+    }
+    return false;
   });
+  const shouldReduceMotion = useReducedMotion();
+
+  const filteredTasks = filterTasks(tasks, filters);
+  const editingTask = tasks.find(t => t.id === editingTaskId) || null;
 
   const handleStatusChange = (taskId: string, newStatus: Task['status']) => {
     setTasks(prevTasks =>
@@ -29,14 +42,95 @@ function App() {
     setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
   };
 
-  return (
-    <div className="container mx-auto p-4 mt-8 max-w-3xl">
-      <h1 className="text-3xl font-bold text-center">Task Manager</h1>
-      <TaskFilter onFilterChange={setFilters} />
+  const handleSubmit = (task: Task) => {
+    if (editingTaskId) {
+      setTasks(prevTasks => prevTasks.map(t => t.id === task.id ? task : t));
+      setEditingTaskId(null);
+    } else {
+      setTasks(prevTasks => [...prevTasks, task]);
+    }
+    setIsFormVisible(false);
+  };
 
-      <TaskList tasks={filteredTasks}
-        onStatusChange={handleStatusChange}
-        onDelete={handleDelete} />
+  const handleEdit = (taskId: string) => {
+    setEditingTaskId(taskId);
+    setIsFormVisible(true);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTaskId(null);
+    setIsFormVisible(false);
+  };
+
+  const displayTasks = filters.sort ? sortTasks(filteredTasks, filters.sort) : filteredTasks;
+
+  return (
+    <div
+      className={`min-h-screen flex flex-col text-slate-900 transition-colors duration-300 ${isDarkMode ? 'dark text-slate-100' : ''}`}
+      style={{ backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc' }}
+    >
+      <div className="container mx-auto flex-1 p-4 mt-8 max-w-7xl">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-5xl font-bold dark:text-white" style={{ color: isDarkMode ? '#f8fafc' : '#0f172a' }} >Task Management</h1>
+          <button
+            onClick={() => setIsDarkMode(previousMode => !previousMode)}
+            className="p-2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
+            aria-label="Toggle Dark Mode"
+          >
+            {!isDarkMode ? (
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+              </svg>
+            )}
+          </button>
+        </div>
+        <AnimatePresence initial={false}>
+          {isFormVisible && (
+            <motion.div
+              initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, height: 0, y: -12 }}
+              animate={{ opacity: 1, height: 'auto', y: 0 }}
+              exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, height: 0, y: -12 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.25 }}
+              className="overflow-hidden"
+            >
+              <TaskForm
+                onSubmit={handleSubmit}
+                initialTask={editingTask}
+                onCancelEdit={handleCancelEdit}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <Dashboard tasks={tasks} isDarkMode={isDarkMode} />
+        <TaskFilter onFilterChange={setFilters} isDarkMode={isDarkMode} />
+          {!isFormVisible && (
+          <div className="flex justify-end my-4">
+            <motion.button
+              type="button"
+              onClick={() => setIsFormVisible(true)}
+              whileHover={shouldReduceMotion ? undefined : { scale: 1.03 }}
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
+              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-6 rounded-full shadow-lg shadow-indigo-600/30"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              Add New Task
+            </motion.button>
+          </div>
+        )}
+        <TaskList tasks={displayTasks}
+          onStatusChange={handleStatusChange}
+          onDelete={handleDelete}
+          onEdit={handleEdit} />
+
+      </div>
+      <Footer isDarkMode={isDarkMode} />
     </div>
   )
 }
