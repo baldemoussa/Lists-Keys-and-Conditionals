@@ -5,6 +5,9 @@ import TaskList from './components/TaskList/TaskList';
 import TaskFilter from './components/TaskFilter/TaskFilter';
 import TaskForm from './components/TaskForm/TaskForm';
 import Dashboard from './components/Dashboard/Dashboard';
+import Footer from './components/Footer';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+
 
 function App() {
   const [tasks, setTasks] = useState<Task[]>(loadTasksFromStorage);
@@ -22,6 +25,7 @@ function App() {
     }
     return false;
   });
+  const shouldReduceMotion = useReducedMotion();
 
   const filteredTasks = filterTasks(tasks, filters);
   const editingTask = tasks.find(t => t.id === editingTaskId) || null;
@@ -62,12 +66,12 @@ function App() {
 
   return (
     <div
-      className={`min-h-screen text-slate-900 transition-colors duration-300 ${isDarkMode ? 'dark text-slate-100' : ''}`}
+      className={`min-h-screen flex flex-col text-slate-900 transition-colors duration-300 ${isDarkMode ? 'dark text-slate-100' : ''}`}
       style={{ backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc' }}
     >
-      <div className="container mx-auto p-4 mt-8 max-w-7xl">
+      <div className="container mx-auto flex-1 p-4 mt-8 max-w-7xl">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold dark:text-white" style={{ color: isDarkMode ? '#f8fafc' : '#0f172a' }} >Task Management</h1>
+          <h1 className="text-5xl font-bold dark:text-white" style={{ color: isDarkMode ? '#f8fafc' : '#0f172a' }} >Task Management</h1>
           <button
             onClick={() => setIsDarkMode(previousMode => !previousMode)}
             className="p-2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
@@ -84,36 +88,49 @@ function App() {
             )}
           </button>
         </div>
-        {!isFormVisible && (
+        <AnimatePresence initial={false}>
+          {isFormVisible && (
+            <motion.div
+              initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, height: 0, y: -12 }}
+              animate={{ opacity: 1, height: 'auto', y: 0 }}
+              exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, height: 0, y: -12 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.25 }}
+              className="overflow-hidden"
+            >
+              <TaskForm
+                onSubmit={handleSubmit}
+                initialTask={editingTask}
+                onCancelEdit={handleCancelEdit}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <Dashboard tasks={tasks} isDarkMode={isDarkMode} />
+        <TaskFilter onFilterChange={setFilters} isDarkMode={isDarkMode} />
+          {!isFormVisible && (
           <div className="flex justify-end my-4">
-            <button
+            <motion.button
+              type="button"
               onClick={() => setIsFormVisible(true)}
-              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-6 rounded-full shadow-lg shadow-indigo-600/30 transition-all duration-300 hover:scale-105"
+              whileHover={shouldReduceMotion ? undefined : { scale: 1.03 }}
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
+              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-6 rounded-full shadow-lg shadow-indigo-600/30"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
               </svg>
               Add New Task
-            </button>
+            </motion.button>
           </div>
         )}
-        {isFormVisible && (
-          <TaskForm
-            onSubmit={handleSubmit}
-            initialTask={editingTask}
-            onCancelEdit={handleCancelEdit}
-          />
-        )}
-
-        <Dashboard tasks={tasks} isDarkMode={isDarkMode} />
-        <TaskFilter onFilterChange={setFilters} isDarkMode={isDarkMode} />
-
         <TaskList tasks={displayTasks}
           onStatusChange={handleStatusChange}
           onDelete={handleDelete}
           onEdit={handleEdit} />
 
       </div>
+      <Footer isDarkMode={isDarkMode} />
     </div>
   )
 }

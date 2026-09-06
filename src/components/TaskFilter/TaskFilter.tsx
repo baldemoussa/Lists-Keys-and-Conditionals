@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { TaskFilterProps, TaskStatus, TaskPriority, SortCriteria } from '../../types';
+import { motion } from 'motion/react';
 
 function TaskFilter({ onFilterChange, isDarkMode }: TaskFilterProps) {
   const [status, setStatus] = useState<TaskStatus | 'all'>('all');
@@ -85,7 +86,11 @@ function TaskFilter({ onFilterChange, isDarkMode }: TaskFilterProps) {
   const hasActiveFilters = status !== 'all' || priority !== 'all' || searchWord !== '' || sort !== 'none';
 
   return (
-    <div className={`rounded-2xl border p-5 mb-6 transition-colors duration-300 ${
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25 }}
+      className={`rounded-2xl border p-5 mb-6 transition-colors duration-300 ${
       isDarkMode
         ? 'bg-slate-800/50 border-slate-700/50 backdrop-blur-sm'
         : 'bg-white/70 border-slate-200/80 backdrop-blur-sm shadow-sm'
@@ -213,7 +218,7 @@ function TaskFilter({ onFilterChange, isDarkMode }: TaskFilterProps) {
           )}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 

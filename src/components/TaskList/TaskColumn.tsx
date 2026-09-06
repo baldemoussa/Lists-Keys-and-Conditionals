@@ -2,8 +2,10 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import TaskItem from './TaskItem';
 import type { Task, TaskStatus, TaskColumnProps } from '../../types';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 export default function TaskColumn({ id, title, tasks, onStatusChange, onDelete, onEdit }: TaskColumnProps) {
   const { setNodeRef } = useDroppable({ id });
+  const shouldReduceMotion = useReducedMotion();
 
   let columnStyle = '';
   let headerStyle = '';
@@ -31,15 +33,25 @@ export default function TaskColumn({ id, title, tasks, onStatusChange, onDelete,
       </h2>
       <ul ref={setNodeRef} className="flex flex-col gap-4 min-h-[300px]">
         <SortableContext id={id} items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-          {tasks.map(task => (
-            <TaskItem 
-              key={task.id} 
-              task={task} 
-              onStatusChange={onStatusChange} 
-              onDelete={onDelete} 
-              onEdit={onEdit} 
-            />
-          ))}
+          <AnimatePresence initial={false} mode="popLayout">
+            {tasks.map(task => (
+              <motion.div
+                key={task.id}
+                layout
+                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -12, scale: 0.96 }}
+                transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
+              >
+                <TaskItem
+                  task={task}
+                  onStatusChange={onStatusChange}
+                  onDelete={onDelete}
+                  onEdit={onEdit}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </SortableContext>
       </ul>
     </div>

@@ -13,6 +13,7 @@ import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import type { TaskListProps, TaskStatus, Task } from '../../types';
 import TaskColumn from './TaskColumn';
 import TaskItem from './TaskItem';
+import { AnimatePresence, motion } from 'motion/react';
 
 const STATUSES: { id: TaskStatus, title: string }[] = [
   { id: 'pending', title: 'Pending' },
@@ -41,24 +42,19 @@ function TaskList({ tasks, onStatusChange, onDelete, onEdit }: TaskListProps) {
     };
 
     const handleDragEnd = (event: DragEndEvent) => {
-        setActiveTask(null);
-        const { active, over } = event;
-        if (!over) return;
+    const { active, over } = event;
 
-        const activeId = active.id;
-        const overId = over.id;
+    if (!over) return;
 
-        // If the item is dropped over a column, overId is the status
-        // If the item is dropped over another task, find that task's status
-        const overTask = tasks.find(t => t.id === overId);
-        const newStatus = overTask ? overTask.status : overId as TaskStatus;
-        
-        const draggedTask = tasks.find(t => t.id === activeId);
-        
-        if (draggedTask && draggedTask.status !== newStatus) {
-            onStatusChange(activeId, newStatus);
-        }
-    };
+    const activeId = String(active.id);
+    const newStatus = String(over.id);
+
+    const draggedTask = tasks.find((task) => task.id === activeId);
+
+    if (draggedTask && draggedTask.status !== newStatus) {
+        onStatusChange(activeId, newStatus);
+    }
+};
 
     return (
         <DndContext
